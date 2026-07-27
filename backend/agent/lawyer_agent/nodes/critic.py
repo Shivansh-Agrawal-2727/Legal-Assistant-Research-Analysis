@@ -67,8 +67,8 @@ Output only a number between 0.0 and 1.0:""",
     if EMBEDDING_MODEL:
         emb_query = EMBEDDING_MODEL.encode(query, convert_to_tensor=True)
         emb_answer = EMBEDDING_MODEL.encode(answer_draft, convert_to_tensor=True)
-        sim_score = util.cos_sim(emb_answer, emb_query).item()
-        sim_score = max(0.0, min(1.0, sim_score))
+        raw_sim = util.cos_sim(emb_answer, emb_query).item()
+        sim_score = max(0.0, min(1.0, (raw_sim - 0.20) / 0.55))
     else:
         sim_score = 0.5
 

@@ -352,11 +352,13 @@ def evaluate_analysis(llm, query: str, all_steps: str, analysis: str) -> str:
 
         relevance_sim = util.cos_sim(emb_analysis, emb_query).item()
         context_sim = util.cos_sim(emb_analysis, emb_context).item()
-        
-        # Step 3: Compute normalized semantic similarity (scale 1–5)
-        semantic_confidence = ((relevance_sim + context_sim) / 2) * 5
+
+        avg_sim = (relevance_sim + context_sim) / 2
+        # Calibrate similarity: Map typical NLP cosine similarity range [0.20, 0.75] onto 1.0–5.0
+        scaled_sim = 1.0 + (max(0.0, avg_sim - 0.20) / 0.55) * 4.0
+        semantic_confidence = round(min(scaled_sim, 5.0), 2)
     else:
-        semantic_confidence = 3.0 # Fallback score if model failed to load
+        semantic_confidence = 3.5  # Fallback score if model failed to load
 
     # Step 4: Weighted hybrid score
     llm_score = (0.4 * relevance) + (0.4 * faithfulness) + (0.2 * clarity)
